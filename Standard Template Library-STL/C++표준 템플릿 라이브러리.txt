@@ -184,3 +184,191 @@ i 가 0 일 때 i -- 를 하게 된다면 -1 이 되는 것이 아니라, 해당
 가장 현명한 선택으로는 역으로 원소를 참조하고 싶다면, 역반복자를 사용하는 것입니다.
 반복자가 상수 반복자가 있는 것 처럼 역반복자 역시 상수 역반복자가 있습니다.
 타입은 const_reverse_iterator 타입이고, crbegin(), crend() 로 얻을 수 있습니다.
+
+
+
+-------------------------------- 3.cpp
+범위 기반 for 문 (range based for loop)
+
+#include <iostream>
+#include <vector>
+
+int main() {
+  std::vector<int> vec;
+  vec.push_back(1);
+  vec.push_back(2);
+  vec.push_back(3);
+
+  // range-based for 문
+  for (int elem : vec) {
+    std::cout << "원소 : " << elem << std::endl;
+  }
+
+  return 0;
+}
+
+
+elem 에 vec 의 원소들이 매 루프 마다 복사되서 들어가게 됩니다.
+
+복사 하기 보다는 레퍼런스를 받고 싶다면 단순히 레퍼런스 타입으로 바꿔버리면 된다.
+
+
+for (const auto& elem : vec) {
+  std::cout << elem << std::endl;
+}
+
+위와 같이 const auto& 로 elem 을 선언하였으므로, elem 은 vec 의 원소들을 상수 레퍼런스로 접근하게 됩니다.
+
+
+
+-------------------------------- 4.cpp
+리스트 (list)
+: 양방향 연결 구조를 가진 자료형
+
+vector 와는 달리 임의의 위치에 있는 원소에 접근을 바로 할 수 없습니다.
+list 컨테이너 자체에서는 시작 원소와 마지막 원소의 위치만을 기억하기 때문에 임의의 위치에 있는 원소에 접근하기 위해서는 하나씩 링크를 따라가야 합니다.
+
+메모리 상에서 원소들이 연속적으로 존재하지 않을 수 있다.
+
+리스트에는 아예 [] 나 at 함수가 아예 정의되어 있지 않습니다.
+
+
+  itr++    // itr ++
+  itr--  // --itr 도 됩니다.
+  
+  itr + 5  // 불가능!
+vector 의 경우 맨 뒤를 제외하고는 임의의 위치에 원소를 추가하거나 제거하는 작업이 O(n)이였지만 리스트의 경우 O(1) 으로 매우 빠르게 수행될 수 있다.
+
+원하는 위치 앞과 뒤에 있는 링크값만 바꿔주면 되기 때문입니다.
+
+//insert
+
+for (std::list<int>::iterator itr = lst.begin(); itr != lst.end(); ++itr) {
+  // 만일 현재 원소가 20 이라면
+  // 그 앞에 50 을 집어넣는다.
+  if (*itr == 20) {
+    lst.insert(itr, 50);
+  }
+}
+
+
+//erase
+
+for (std::list<int>::iterator itr = lst.begin(); itr != lst.end(); ++itr) {
+  // 값이 30 인 원소를 삭제한다.
+  if (*itr == 30) {
+    lst.erase(itr);
+    break;
+  }
+}
+리스트의 경우는 벡터와는 다르게, 원소를 지워도 반복자가 무효화 되지 않는다.
+
+각 원소들의 주소값들은 바뀌지 않기 때문
+
+#include <iostream>
+#include <list>
+
+int main() {
+  std::list<int> lst;
+
+  lst.push_back(10);
+  lst.push_back(20);
+  lst.push_back(30);
+  lst.push_back(40);
+
+  for (std::list<int>::iterator itr = lst.begin(); itr != lst.end(); ++itr) {
+    std::cout << *itr << std::endl;
+  }
+}
+
+
+/*
+
+
+10
+20
+30
+40
+
+*/
+
+
+
+
+-------------------------------- 5.cpp
+
+덱 (deque - double ended queue)
+
+
+
+덱은 O(1) 으로 임의의 위치의 원소에 접근할 수 있으며,
+맨 뒤에 원소를 추가/제거 하는 작업도 O(1) 으로 수행
+
+벡터와는 다르게 맨 앞에 원소를 추가/제거 하는 작업 까지도 O(1) 으로 수행 가능
+
+임의의 위치에 있는 원소를 제거/추가 하는 작업은 벡터와 마찬가지로 O(n) 으로 수행 가능
+
+속도도 벡터 보다 더 빠르다.
+덱의 경우 원소들이 실제로 메모리 상에서 연속적으로 존재하지는 않습니다.
+
+이 때문에 원소들이 어디에 저장되어 있는지에 대한 정보를 보관하기 위해 추가적인 메모리가 더 필요로 합니다.
+
+예) 64 비트 libc++ 라이브러리의 경우 1 개의 원소를 보관하는 덱은 그 원소 크기에 비해 8 배나 더 많은 메모리를 필요로 합니다
+즉 덱은 실행 속도를 위해 메모리를 (많이) 희생하는 컨테이너
+
+원소들이 메모리에 연속되어 존재하는 것이 아니라 일정 크기로 잘려서 각각의 블록 속에 존재
+
+이 블록들이 메모리 상에 어느 곳에 위치하여 있는지 저장하기 위해서 각각의 블록들의 주소를 저장하는 벡터가 필요
+새로 할당 시에 앞쪽 및 뒤쪽 모두에 공간을 남겨놓는다.
+
+벡터의 경우 뒤쪽에만 공간이 남는다.
+
+이를 통해 맨 앞과 맨 뒤에 O(1) 의 속도로 insert 및 erase 를 수행할 수 있다.
+
+기존의 원소들을 복사할 필요가 전혀 없다.
+
+push_back 과 push_front 를 이용해서 맨 앞과 뒤에 원소들을 추가
+
+pop_front 함수를 이용해서 맨 앞의 원소를 제거
+
+덱 역시 벡터 처럼 임의의 위치에 원소에 접근할 수 있으므로 [] 와 at함수를 제공
+
+
+
+#include <deque>
+#include <iostream>
+
+template <typename T>
+void print_deque(std::deque<T>& dq) {
+  // 전체 덱을 출력하기
+  std::cout << "[ ";
+  for (const auto& elem : dq) {
+    std::cout << elem << " ";
+  }
+  std::cout << " ] " << std::endl;
+}
+int main() {
+  std::deque<int> dq;
+  dq.push_back(10);
+  dq.push_back(20);
+  dq.push_front(30);
+  dq.push_front(40);
+
+  std::cout << "초기 dq 상태" << std::endl;
+  print_deque(dq);
+
+  std::cout << "맨 앞의 원소 제거" << std::endl;
+  dq.pop_front();
+  print_deque(dq);
+}
+
+
+/*
+
+초기 dq 상태
+[ 40 30 10 20  ] 
+맨 앞의 원소 제거
+[ 30 10 20  ]
+
+*/
+
